@@ -24,7 +24,9 @@ type BoltTimeDB struct {
 	DB *bolt.DB
 }
 
-// TODO create bucket on startup so all but put and del can be db.view
+const (
+	bucket = "default"
+)
 
 func newBoltTimeDB(dbFile string) (*BoltTimeDB, error) {
 	// Open the <dbFile>.db data file in your current directory.
@@ -34,23 +36,24 @@ func newBoltTimeDB(dbFile string) (*BoltTimeDB, error) {
 		return nil, err
 	}
 
+	db.Update(func(tx *bolt.Tx) error {
+		_, err = tx.CreateBucketIfNotExists([]byte(bucket))
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
 	return &BoltTimeDB{
 		DB: db,
 	}, nil
 }
 
-const (
-	bucket = "default"
-)
-
 func (bt *BoltTimeDB) Put(entry Entry) error {
 	return bt.DB.Update(func(tx *bolt.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists([]byte(bucket))
-		if err != nil {
-			return err
-		}
+		bucket := tx.Bucket([]byte(bucket))
 
-		err = bucket.Put([]byte(entry.Time.Format(time.RFC3339)), entry.Value)
+		err := bucket.Put([]byte(entry.Time.Format(time.RFC3339)), entry.Value)
 		if err != nil {
 			return err
 		}
@@ -60,11 +63,8 @@ func (bt *BoltTimeDB) Put(entry Entry) error {
 }
 
 func (bt *BoltTimeDB) GetSince(t time.Time) (entries []Entry, err error) {
-	err = bt.DB.Update(func(tx *bolt.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists([]byte(bucket))
-		if err != nil {
-			return err
-		}
+	err = bt.DB.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(bucket))
 
 		c := bucket.Cursor()
 
@@ -90,10 +90,7 @@ func (bt *BoltTimeDB) GetSince(t time.Time) (entries []Entry, err error) {
 
 func (bt *BoltTimeDB) DeleteBefore(t time.Time) error {
 	return bt.DB.Update(func(tx *bolt.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists([]byte(bucket))
-		if err != nil {
-			return err
-		}
+		bucket := tx.Bucket([]byte(bucket))
 
 		c := bucket.Cursor()
 
@@ -119,8 +116,8 @@ func (bt *BoltTimeDB) DeleteBefore(t time.Time) error {
 }
 
 func (bt *BoltTimeDB) GetLatestN(n int) (entries []Entry, err error) {
-	err = bt.DB.Update(func(tx *bolt.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists([]byte(bucket))
+	err = bt.DB.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(bucket))
 		if err != nil {
 			return err
 		}

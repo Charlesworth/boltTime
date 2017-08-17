@@ -495,3 +495,55 @@ func TestDeleteBefore_MultipleBefore(t *testing.T) {
 		return
 	}
 }
+
+func TestDeleteBefore_MultipleAfter(t *testing.T) {
+	bt, err := newBoltTimeDB("test.db")
+	if err != nil {
+		t.Error("Test setup fail, unable to start DB:", err)
+	}
+	defer os.Remove("test.db")
+
+	testEntry1 := Entry{
+		Time:  time.Now(),
+		Value: []byte("testValue1"),
+	}
+
+	err = bt.Put(testEntry1)
+	if err != nil {
+		t.Error("Test setup error, unable to put:", err)
+	}
+
+	testEntry2 := Entry{
+		Time:  time.Now().Add(-time.Minute * 4),
+		Value: []byte("testValue2"),
+	}
+
+	err = bt.Put(testEntry2)
+	if err != nil {
+		t.Error("Test setup error, unable to put:", err)
+	}
+
+	testEntry3 := Entry{
+		Time:  time.Now().Add(-time.Minute * 10),
+		Value: []byte("testValue3"),
+	}
+
+	err = bt.Put(testEntry3)
+	if err != nil {
+		t.Error("Test setup error, unable to put:", err)
+	}
+
+	err = bt.DeleteBefore(time.Now().Add(-time.Minute * 6))
+	if err != nil {
+		t.Error("Unexpected error:", err)
+	}
+
+	entries, err := bt.GetSince(time.Now().Add(-time.Minute * 100))
+	if err != nil {
+		t.Error("Unexpected error:", err)
+	}
+	if len(entries) != 2 {
+		t.Error("Should return one entry")
+		return
+	}
+}
