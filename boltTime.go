@@ -31,7 +31,8 @@ const (
 	bucket = "default"
 )
 
-func newBoltTimeDB(dbFile string) (*BoltTime, error) {
+// NewBoltTime returns a initialised BoltTime instance
+func NewBoltTime(dbFile string) (*BoltTime, error) {
 	db, err := bolt.Open(dbFile, 0600, nil)
 	if err != nil {
 		return nil, err

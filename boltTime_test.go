@@ -7,7 +7,7 @@ import (
 )
 
 func TestPut(t *testing.T) {
-	bt, err := newBoltTimeDB("test.db")
+	bt, err := NewBoltTime("test.db")
 	if err != nil {
 		t.Error()
 	}
@@ -24,7 +24,7 @@ func TestPut(t *testing.T) {
 }
 
 func TestGetLatestN(t *testing.T) {
-	bt, err := newBoltTimeDB("test.db")
+	bt, err := NewBoltTime("test.db")
 	if err != nil {
 		t.Error()
 	}
@@ -123,7 +123,7 @@ func TestGetLatestN(t *testing.T) {
 }
 
 func TestGetLatestN_Empty(t *testing.T) {
-	bt, err := newBoltTimeDB("test.db")
+	bt, err := NewBoltTime("test.db")
 	if err != nil {
 		t.Error("Test setup fail, unable to start DB:", err)
 	}
@@ -139,7 +139,7 @@ func TestGetLatestN_Empty(t *testing.T) {
 }
 
 func TestGetLatestN_SingleEntry(t *testing.T) {
-	bt, err := newBoltTimeDB("test.db")
+	bt, err := NewBoltTime("test.db")
 	if err != nil {
 		t.Error("Test setup fail, unable to start DB:", err)
 	}
@@ -166,7 +166,7 @@ func TestGetLatestN_SingleEntry(t *testing.T) {
 }
 
 func TestGetLatestN_MultipleEntries(t *testing.T) {
-	bt, err := newBoltTimeDB("test.db")
+	bt, err := NewBoltTime("test.db")
 	if err != nil {
 		t.Error("Test setup fail, unable to start DB:", err)
 	}
@@ -219,7 +219,7 @@ func TestGetLatestN_MultipleEntries(t *testing.T) {
 }
 
 func TestGetLatestN_NLargerThanExists(t *testing.T) {
-	bt, err := newBoltTimeDB("test.db")
+	bt, err := NewBoltTime("test.db")
 	if err != nil {
 		t.Error("Test setup fail, unable to start DB:", err)
 	}
@@ -245,7 +245,7 @@ func TestGetLatestN_NLargerThanExists(t *testing.T) {
 }
 
 func TestGetSince_NoEntries(t *testing.T) {
-	bt, err := newBoltTimeDB("test.db")
+	bt, err := NewBoltTime("test.db")
 	if err != nil {
 		t.Error("Test setup fail, unable to start DB:", err)
 	}
@@ -261,7 +261,7 @@ func TestGetSince_NoEntries(t *testing.T) {
 }
 
 func TestGetSince_SingleEntry(t *testing.T) {
-	bt, err := newBoltTimeDB("test.db")
+	bt, err := NewBoltTime("test.db")
 	if err != nil {
 		t.Error("Test setup fail, unable to start DB:", err)
 	}
@@ -291,7 +291,7 @@ func TestGetSince_SingleEntry(t *testing.T) {
 }
 
 func TestGetSince_SingleEntryNotInRange(t *testing.T) {
-	bt, err := newBoltTimeDB("test.db")
+	bt, err := NewBoltTime("test.db")
 	if err != nil {
 		t.Error("Test setup fail, unable to start DB:", err)
 	}
@@ -318,7 +318,7 @@ func TestGetSince_SingleEntryNotInRange(t *testing.T) {
 }
 
 func TestGetSince_MultiEntryOneInRange(t *testing.T) {
-	bt, err := newBoltTimeDB("test.db")
+	bt, err := NewBoltTime("test.db")
 	if err != nil {
 		t.Error("Test setup fail, unable to start DB:", err)
 	}
@@ -358,7 +358,7 @@ func TestGetSince_MultiEntryOneInRange(t *testing.T) {
 }
 
 func TestDeleteBefore_NoEntries(t *testing.T) {
-	bt, err := newBoltTimeDB("test.db")
+	bt, err := NewBoltTime("test.db")
 	if err != nil {
 		t.Error("Test setup fail, unable to start DB:", err)
 	}
@@ -371,7 +371,7 @@ func TestDeleteBefore_NoEntries(t *testing.T) {
 }
 
 func TestDeleteBefore_NoneBefore(t *testing.T) {
-	bt, err := newBoltTimeDB("test.db")
+	bt, err := NewBoltTime("test.db")
 	if err != nil {
 		t.Error("Test setup fail, unable to start DB:", err)
 	}
@@ -403,7 +403,7 @@ func TestDeleteBefore_NoneBefore(t *testing.T) {
 }
 
 func TestDeleteBefore_OneBefore(t *testing.T) {
-	bt, err := newBoltTimeDB("test.db")
+	bt, err := NewBoltTime("test.db")
 	if err != nil {
 		t.Error("Test setup fail, unable to start DB:", err)
 	}
@@ -445,7 +445,7 @@ func TestDeleteBefore_OneBefore(t *testing.T) {
 }
 
 func TestDeleteBefore_MultipleBefore(t *testing.T) {
-	bt, err := newBoltTimeDB("test.db")
+	bt, err := NewBoltTime("test.db")
 	if err != nil {
 		t.Error("Test setup fail, unable to start DB:", err)
 	}
@@ -497,7 +497,7 @@ func TestDeleteBefore_MultipleBefore(t *testing.T) {
 }
 
 func TestDeleteBefore_MultipleAfter(t *testing.T) {
-	bt, err := newBoltTimeDB("test.db")
+	bt, err := NewBoltTime("test.db")
 	if err != nil {
 		t.Error("Test setup fail, unable to start DB:", err)
 	}
