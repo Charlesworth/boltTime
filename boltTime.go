@@ -8,6 +8,7 @@ import (
 	"github.com/boltdb/bolt"
 )
 
+// TimeStore decribes the interface that BoltTime fulfils
 type TimeStore interface {
 	Put(Entry) error
 	GetSince(time.Time) ([]Entry, error)
@@ -15,12 +16,14 @@ type TimeStore interface {
 	GetLatestN(n int) ([]Entry, error)
 }
 
+// Entry contains a time and a []byte value
 type Entry struct {
 	Time  time.Time
 	Value []byte
 }
 
-type BoltTimeDB struct {
+// BoltTime is a type that fulfils the TimeStore interface
+type BoltTime struct {
 	DB *bolt.DB
 }
 
@@ -28,28 +31,30 @@ const (
 	bucket = "default"
 )
 
-func newBoltTimeDB(dbFile string) (*BoltTimeDB, error) {
-	// Open the <dbFile>.db data file in your current directory.
-	// It will be created if it doesn't exist.
+func newBoltTimeDB(dbFile string) (*BoltTime, error) {
 	db, err := bolt.Open(dbFile, 0600, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	db.Update(func(tx *bolt.Tx) error {
+	err = db.Update(func(tx *bolt.Tx) error {
 		_, err = tx.CreateBucketIfNotExists([]byte(bucket))
 		if err != nil {
 			return err
 		}
 		return nil
 	})
+	if err != nil {
+		return nil, err
+	}
 
-	return &BoltTimeDB{
+	return &BoltTime{
 		DB: db,
 	}, nil
 }
 
-func (bt *BoltTimeDB) Put(entry Entry) error {
+// Put puts a Entry into the datastore
+func (bt *BoltTime) Put(entry Entry) error {
 	return bt.DB.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucket))
 
@@ -62,7 +67,8 @@ func (bt *BoltTimeDB) Put(entry Entry) error {
 	})
 }
 
-func (bt *BoltTimeDB) GetSince(t time.Time) (entries []Entry, err error) {
+// GetSince returns all values since time t
+func (bt *BoltTime) GetSince(t time.Time) (entries []Entry, err error) {
 	err = bt.DB.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucket))
 
@@ -88,7 +94,8 @@ func (bt *BoltTimeDB) GetSince(t time.Time) (entries []Entry, err error) {
 	return entries, err
 }
 
-func (bt *BoltTimeDB) DeleteBefore(t time.Time) error {
+// DeleteBefore deletes all entries before time t
+func (bt *BoltTime) DeleteBefore(t time.Time) error {
 	return bt.DB.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucket))
 
@@ -115,7 +122,8 @@ func (bt *BoltTimeDB) DeleteBefore(t time.Time) error {
 	})
 }
 
-func (bt *BoltTimeDB) GetLatestN(n int) (entries []Entry, err error) {
+// GetLatestN retrieves n most recent entries
+func (bt *BoltTime) GetLatestN(n int) (entries []Entry, err error) {
 	err = bt.DB.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucket))
 		if err != nil {
