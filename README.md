@@ -3,10 +3,10 @@ Time/Value database built on boltDB
 
 ### Interface:
 
-        Put(Entry) error
-        GetSince(time.Time) ([]Entry, error)
-        DeleteBefore(time.Time) error
-        GetLatestN(n int) ([]Entry, error)
+	Put(bucket string, entry Entry) error
+	GetSince(bucket string, t time.Time) ([]Entry, error)
+	DeleteBefore(bucket string, t time.Time) error
+	GetLatestN(bucket string, n int) ([]Entry, error)
 
 To get a new BoltTime instance:
 

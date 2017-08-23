@@ -17,108 +17,9 @@ func TestPut(t *testing.T) {
 		Value: []byte("testValue"),
 	}
 
-	err = bt.Put(testEntry)
+	err = bt.Put("testBucket", testEntry)
 	if err != nil {
 		t.Error()
-	}
-}
-
-func TestGetLatestN(t *testing.T) {
-	bt, err := NewBoltTime("test.db")
-	if err != nil {
-		t.Error()
-	}
-	defer os.Remove("test.db")
-
-	entries, err := bt.GetLatestN(1)
-	if entries != nil {
-		t.Error("should be 0")
-	}
-	if err == nil {
-		t.Error(err)
-	}
-
-	// add one entry
-	testEntry := Entry{
-		Time:  time.Now(),
-		Value: []byte("testValue1"),
-	}
-
-	err = bt.Put(testEntry)
-	if err != nil {
-		t.Error(err)
-	}
-
-	entries, err = bt.GetLatestN(1)
-	if err != nil {
-		t.Error(err)
-	}
-	if len(entries) != 1 {
-		t.Error("should only contain 1 entry but contained", len(entries))
-		return
-	}
-	if string(entries[0].Value) != "testValue1" {
-		t.Error("mismatch")
-	}
-
-	// put multiple
-	err = bt.Put(Entry{
-		Time:  time.Now().Add(time.Minute),
-		Value: []byte("testValue2"),
-	})
-	if err != nil {
-		t.Error()
-	}
-
-	err = bt.Put(Entry{
-		Time:  time.Now().Add(time.Minute * 2),
-		Value: []byte("testValue3"),
-	})
-	if err != nil {
-		t.Error()
-	}
-
-	entries, err = bt.GetLatestN(1)
-	if err != nil {
-		t.Error(err)
-	}
-	if len(entries) != 1 {
-		t.Error("should only contain 1 entry but contained", len(entries))
-		return
-	}
-	if string(entries[0].Value) != "testValue3" {
-		t.Error("mismatch")
-	}
-
-	entries, err = bt.GetLatestN(3)
-	if err != nil {
-		t.Error(err)
-	}
-	if len(entries) != 3 {
-		t.Error("should only contain 3 entry but contained", len(entries))
-		return
-	}
-	if string(entries[0].Value) != "testValue3" {
-		t.Error("mismatch")
-	}
-	if string(entries[2].Value) != "testValue1" {
-		t.Error("mismatch")
-	}
-
-	entries, err = bt.GetLatestN(0)
-	if err != nil {
-		t.Error(err)
-	}
-	if entries != nil {
-		t.Error("as;lkdfj;adskfj")
-	}
-
-	entries, err = bt.GetLatestN(4)
-	if err == nil {
-		t.Error("expecting an error")
-	}
-	if entries != nil {
-		t.Error("as;lkdfj;adskfj")
 	}
 }
 
@@ -129,7 +30,7 @@ func TestGetLatestN_Empty(t *testing.T) {
 	}
 	defer os.Remove("test.db")
 
-	entries, err := bt.GetLatestN(0)
+	entries, err := bt.GetLatestN("testBucket", 0)
 	if err != nil {
 		t.Error("Unexpected error: ", err)
 	}
@@ -150,12 +51,12 @@ func TestGetLatestN_SingleEntry(t *testing.T) {
 		Value: []byte("testValue1"),
 	}
 
-	err = bt.Put(testEntry)
+	err = bt.Put("testBucket", testEntry)
 	if err != nil {
 		t.Error("Test setup error, unable to put:", err)
 	}
 
-	entries, err := bt.GetLatestN(1)
+	entries, err := bt.GetLatestN("testBucket", 1)
 	if err != nil {
 		t.Error("Unexpected error: ", err)
 	}
@@ -177,7 +78,7 @@ func TestGetLatestN_MultipleEntries(t *testing.T) {
 		Value: []byte("testValue1"),
 	}
 
-	err = bt.Put(testEntry)
+	err = bt.Put("testBucket", testEntry)
 	if err != nil {
 		t.Error("Test setup error, unable to put:", err)
 	}
@@ -187,7 +88,7 @@ func TestGetLatestN_MultipleEntries(t *testing.T) {
 		Value: []byte("testValue2"),
 	}
 
-	err = bt.Put(testEntry2)
+	err = bt.Put("testBucket", testEntry2)
 	if err != nil {
 		t.Error("Test setup error, unable to put:", err)
 	}
@@ -197,12 +98,12 @@ func TestGetLatestN_MultipleEntries(t *testing.T) {
 		Value: []byte("testValue3"),
 	}
 
-	err = bt.Put(testEntry3)
+	err = bt.Put("testBucket", testEntry3)
 	if err != nil {
 		t.Error("Test setup error, unable to put:", err)
 	}
 
-	entries, err := bt.GetLatestN(3)
+	entries, err := bt.GetLatestN("testBucket", 3)
 	if err != nil {
 		t.Error("Unexpected error: ", err)
 	}
@@ -230,17 +131,18 @@ func TestGetLatestN_NLargerThanExists(t *testing.T) {
 		Value: []byte("testValue1"),
 	}
 
-	err = bt.Put(testEntry)
+	err = bt.Put("testBucket", testEntry)
 	if err != nil {
 		t.Error("Test setup error, unable to put:", err)
 	}
 
-	entries, err := bt.GetLatestN(4)
+	entries, err := bt.GetLatestN("testBucket", 4)
 	if err == nil {
 		t.Error("expecting an error")
 	}
-	if entries != nil {
-		t.Error("Should return an empty Entry slice when more than exist are requested")
+
+	if len(entries) != 1 {
+		t.Error("Should return what was present when more than exist are requested")
 	}
 }
 
@@ -251,7 +153,7 @@ func TestGetSince_NoEntries(t *testing.T) {
 	}
 	defer os.Remove("test.db")
 
-	entries, err := bt.GetSince(time.Now())
+	entries, err := bt.GetSince("testBucket", time.Now())
 	if err != nil {
 		t.Error("Unexpected Error:", err)
 	}
@@ -272,12 +174,12 @@ func TestGetSince_SingleEntry(t *testing.T) {
 		Value: []byte("testValue1"),
 	}
 
-	err = bt.Put(testEntry)
+	err = bt.Put("testBucket", testEntry)
 	if err != nil {
 		t.Error("Test setup error, unable to put:", err)
 	}
 
-	entries, err := bt.GetSince(time.Now().Add(-time.Minute * 10))
+	entries, err := bt.GetSince("testBucket", time.Now().Add(-time.Minute*10))
 	if err != nil {
 		t.Error("Unexpected error:", err)
 	}
@@ -302,12 +204,12 @@ func TestGetSince_SingleEntryNotInRange(t *testing.T) {
 		Value: []byte("testValue1"),
 	}
 
-	err = bt.Put(testEntry)
+	err = bt.Put("testBucket", testEntry)
 	if err != nil {
 		t.Error("Test setup error, unable to put:", err)
 	}
 
-	entries, err := bt.GetSince(time.Now())
+	entries, err := bt.GetSince("testBucket", time.Now())
 	if err != nil {
 		t.Error("Unexpected error:", err)
 	}
@@ -329,7 +231,7 @@ func TestGetSince_MultiEntryOneInRange(t *testing.T) {
 		Value: []byte("testValue1"),
 	}
 
-	err = bt.Put(testEntry1)
+	err = bt.Put("testBucket", testEntry1)
 	if err != nil {
 		t.Error("Test setup error, unable to put:", err)
 	}
@@ -339,12 +241,12 @@ func TestGetSince_MultiEntryOneInRange(t *testing.T) {
 		Value: []byte("testValue2"),
 	}
 
-	err = bt.Put(testEntry2)
+	err = bt.Put("testBucket", testEntry2)
 	if err != nil {
 		t.Error("Test setup error, unable to put:", err)
 	}
 
-	entries, err := bt.GetSince(time.Now().Add(-time.Minute * 7))
+	entries, err := bt.GetSince("testBucket", time.Now().Add(-time.Minute*7))
 	if err != nil {
 		t.Error("Unexpected error:", err)
 	}
@@ -364,7 +266,7 @@ func TestDeleteBefore_NoEntries(t *testing.T) {
 	}
 	defer os.Remove("test.db")
 
-	err = bt.DeleteBefore(time.Now())
+	err = bt.DeleteBefore("testBucket", time.Now())
 	if err != nil {
 		t.Error("Unexpected error:", err)
 	}
@@ -382,17 +284,17 @@ func TestDeleteBefore_NoneBefore(t *testing.T) {
 		Value: []byte("testValue"),
 	}
 
-	err = bt.Put(testEntry)
+	err = bt.Put("testBucket", testEntry)
 	if err != nil {
 		t.Error("Test setup error, unable to put:", err)
 	}
 
-	err = bt.DeleteBefore(time.Now().Add(-time.Minute * 5))
+	err = bt.DeleteBefore("testBucket", time.Now().Add(-time.Minute*5))
 	if err != nil {
 		t.Error("Unexpected error:", err)
 	}
 
-	entries, err := bt.GetSince(time.Now().Add(-time.Minute * 100))
+	entries, err := bt.GetSince("testBucket", time.Now().Add(-time.Minute*100))
 	if err != nil {
 		t.Error("Unexpected error:", err)
 	}
@@ -414,7 +316,7 @@ func TestDeleteBefore_OneBefore(t *testing.T) {
 		Value: []byte("testValue1"),
 	}
 
-	err = bt.Put(testEntry1)
+	err = bt.Put("testBucket", testEntry1)
 	if err != nil {
 		t.Error("Test setup error, unable to put:", err)
 	}
@@ -424,17 +326,17 @@ func TestDeleteBefore_OneBefore(t *testing.T) {
 		Value: []byte("testValue2"),
 	}
 
-	err = bt.Put(testEntry2)
+	err = bt.Put("testBucket", testEntry2)
 	if err != nil {
 		t.Error("Test setup error, unable to put:", err)
 	}
 
-	err = bt.DeleteBefore(time.Now().Add(-time.Minute * 5))
+	err = bt.DeleteBefore("testBucket", time.Now().Add(-time.Minute*5))
 	if err != nil {
 		t.Error("Unexpected error:", err)
 	}
 
-	entries, err := bt.GetSince(time.Now().Add(-time.Minute * 100))
+	entries, err := bt.GetSince("testBucket", time.Now().Add(-time.Minute*100))
 	if err != nil {
 		t.Error("Unexpected error:", err)
 	}
@@ -456,7 +358,7 @@ func TestDeleteBefore_MultipleBefore(t *testing.T) {
 		Value: []byte("testValue1"),
 	}
 
-	err = bt.Put(testEntry1)
+	err = bt.Put("testBucket", testEntry1)
 	if err != nil {
 		t.Error("Test setup error, unable to put:", err)
 	}
@@ -466,7 +368,7 @@ func TestDeleteBefore_MultipleBefore(t *testing.T) {
 		Value: []byte("testValue2"),
 	}
 
-	err = bt.Put(testEntry2)
+	err = bt.Put("testBucket", testEntry2)
 	if err != nil {
 		t.Error("Test setup error, unable to put:", err)
 	}
@@ -476,17 +378,17 @@ func TestDeleteBefore_MultipleBefore(t *testing.T) {
 		Value: []byte("testValue3"),
 	}
 
-	err = bt.Put(testEntry3)
+	err = bt.Put("testBucket", testEntry3)
 	if err != nil {
 		t.Error("Test setup error, unable to put:", err)
 	}
 
-	err = bt.DeleteBefore(time.Now().Add(-time.Minute * 5))
+	err = bt.DeleteBefore("testBucket", time.Now().Add(-time.Minute*5))
 	if err != nil {
 		t.Error("Unexpected error:", err)
 	}
 
-	entries, err := bt.GetSince(time.Now().Add(-time.Minute * 100))
+	entries, err := bt.GetSince("testBucket", time.Now().Add(-time.Minute*100))
 	if err != nil {
 		t.Error("Unexpected error:", err)
 	}
@@ -508,7 +410,7 @@ func TestDeleteBefore_MultipleAfter(t *testing.T) {
 		Value: []byte("testValue1"),
 	}
 
-	err = bt.Put(testEntry1)
+	err = bt.Put("testBucket", testEntry1)
 	if err != nil {
 		t.Error("Test setup error, unable to put:", err)
 	}
@@ -518,7 +420,7 @@ func TestDeleteBefore_MultipleAfter(t *testing.T) {
 		Value: []byte("testValue2"),
 	}
 
-	err = bt.Put(testEntry2)
+	err = bt.Put("testBucket", testEntry2)
 	if err != nil {
 		t.Error("Test setup error, unable to put:", err)
 	}
@@ -528,17 +430,17 @@ func TestDeleteBefore_MultipleAfter(t *testing.T) {
 		Value: []byte("testValue3"),
 	}
 
-	err = bt.Put(testEntry3)
+	err = bt.Put("testBucket", testEntry3)
 	if err != nil {
 		t.Error("Test setup error, unable to put:", err)
 	}
 
-	err = bt.DeleteBefore(time.Now().Add(-time.Minute * 6))
+	err = bt.DeleteBefore("testBucket", time.Now().Add(-time.Minute*6))
 	if err != nil {
 		t.Error("Unexpected error:", err)
 	}
 
-	entries, err := bt.GetSince(time.Now().Add(-time.Minute * 100))
+	entries, err := bt.GetSince("testBucket", time.Now().Add(-time.Minute*100))
 	if err != nil {
 		t.Error("Unexpected error:", err)
 	}
