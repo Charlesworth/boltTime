@@ -137,7 +137,7 @@ func TestGetLatestN_NLargerThanExists(t *testing.T) {
 	}
 
 	entries, err := bt.GetLatestN("testBucket", 4)
-	if err == nil {
+	if err != nil {
 		t.Error("expecting an error")
 	}
 

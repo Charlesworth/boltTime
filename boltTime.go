@@ -103,7 +103,7 @@ func (bt *BoltTime) GetSince(bucket string, t time.Time) (entries []Entry, err e
 		startTime := []byte(t.Format(time.RFC3339))
 
 		for k, v := c.Seek(startTime); k != nil; k, v = c.Next() {
-			t, err := time.Parse(time.RFC3339, string(k))
+			t, err := time.Parse(time.RFC3339, string(k[:]))
 			if err != nil {
 				return err
 			}
@@ -128,11 +128,15 @@ func (bt *BoltTime) GetLatestN(bucket string, n int) (entries []Entry, err error
 			return nil
 		}
 
+		if b.Stats().KeyN < n {
+			n = b.Stats().KeyN
+		}
+
 		c := b.Cursor()
 
 		i := 0
 		for k, v := c.Last(); i < n; k, v = c.Prev() {
-			t, err := time.Parse(time.RFC3339, string(k))
+			t, err := time.Parse(time.RFC3339, string(k[:]))
 			if err != nil {
 				return err
 			}
