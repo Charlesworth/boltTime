@@ -42,7 +42,7 @@ func NewBoltTime(dbFile string) (*BoltTime, error) {
 	}, nil
 }
 
-// PutBucket puts a Entry into the datastore in the specified bucket
+// Put puts a Entry into the datastore in the specified bucket
 func (bt *BoltTime) Put(bucket string, entry Entry) error {
 	return bt.DB.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(bucket))
@@ -59,7 +59,7 @@ func (bt *BoltTime) Put(bucket string, entry Entry) error {
 	})
 }
 
-// DeleteBeforeBucket deletes all entries before time t
+// DeleteBefore deletes all entries before time t
 func (bt *BoltTime) DeleteBefore(bucket string, t time.Time) error {
 	return bt.DB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(bucket))
@@ -120,7 +120,7 @@ func (bt *BoltTime) GetSince(bucket string, t time.Time) (entries []Entry, err e
 	return entries, err
 }
 
-// GetLatestNBucket retrieves n most recent entries
+// GetLatestN retrieves n most recent entries
 func (bt *BoltTime) GetLatestN(bucket string, n int) (entries []Entry, err error) {
 	err = bt.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(bucket))
