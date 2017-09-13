@@ -14,6 +14,22 @@ type TimeStore interface {
 	GetLatestN(bucket string, n int) ([]Entry, error)
 }
 
+type TimeBucket interface {
+	Put(bucket string, entry Entry) error
+
+	Get(t time.Time) []Entry
+	GetSince(t time.Time) []Entry
+	GetBefore(t time.Time) []Entry
+	GetNewestN(n int) []Entry
+	GetOldestN(n int) []Entry
+
+	Delete(t time.Time) error
+	DeleteSince(t time.Time) error
+	DeleteBefore(t time.Time) error
+	DeleteNewestN(n int) error
+	DeleteOldestN(n int) error
+}
+
 // Entry contains a time and a []byte value
 type Entry struct {
 	Time  time.Time
@@ -32,7 +48,7 @@ const (
 
 // NewBoltTime returns a initialised BoltTime instance
 func NewBoltTime(dbFile string) (*BoltTime, error) {
-	db, err := bolt.Open(dbFile, 0600, nil)
+	db, err := bolt.Open(dbFile, 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +136,7 @@ func (bt *BoltTime) GetSince(bucket string, t time.Time) (entries []Entry, err e
 	return entries, err
 }
 
-// GetLatestN retrieves n most recent entries
+// GetLastestN retrieves n most recent entries
 func (bt *BoltTime) GetLatestN(bucket string, n int) (entries []Entry, err error) {
 	err = bt.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(bucket))
